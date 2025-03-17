@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/rtc.h"
@@ -18,6 +19,8 @@ volatile bool alarm_flag = false;
 volatile bool echo_flag = false; 
 
 volatile long duration;
+
+bool run = false;
 
 int64_t alarm_callback(alarm_id_t id, void *user_data) {
     alarm_flag = true;
@@ -62,30 +65,65 @@ int main() {
     
     gpio_set_irq_enabled_with_callback(ECHO_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &echo_callback);
 
+    printf("Digite 'Start' para iniciar e 'Stop' para parar\n");
+
+    char buffer[10];
+    int i = 0;
+
     while (true) {
-        gpio_put(TRIG_PIN, 1);
-        sleep_ms(10);
-        gpio_put(TRIG_PIN, 0);
 
-        alarm_id_t alarm = add_alarm_in_us(50000, alarm_callback, NULL, true);
+        int command = getchar_timeout_us(0);
 
-        if (alarm_flag) {
-            alarm_flag = false;
-            cancel_alarm(alarm);
-            printf("Falha\n");
-        }
-        else if (echo_flag) {
-            echo_flag = false;
-            cancel_alarm(alarm);
-            datetime_t now;
-            rtc_get_datetime(&now);
-
-            printf("[%04d-%02d-%02d %02d:%02d:%02d] Distância: %.2f cm\n", 
-                now.year, now.month, now.day, now.hour, now.min, now.sec, 
-                duration * 0.034 / 2);
+        if (command != PICO_ERROR_TIMEOUT) {
+            buffer[i++] = command;
+            if (command == '\n') {
+                buffer[i] = '\0';
+                i = 0;
+            }
         }
 
-        sleep_ms(1000);
+
+
+        if (strcmp(buffer,"Start") == 0) {
+            run = true;
+            // limpa o buffer
+            for (int j = 0; j < 10; j++) {
+                buffer[j] = 0;
+            }
+            printf("Iniciado\n");
+        }
+        else if (strcmp(buffer,"Stop") == 0) {
+            run = false;
+            printf("Parado\n");
+        }
+
+        if (run){
+            
+                    gpio_put(TRIG_PIN, 1);
+                    sleep_ms(10);
+                    gpio_put(TRIG_PIN, 0);
+            
+                    alarm_id_t alarm = add_alarm_in_us(50000, alarm_callback, NULL, true);
+            
+                    if (alarm_flag) {
+                        alarm_flag = false;
+                        cancel_alarm(alarm);
+                        printf("Falha\n");
+                    }
+                    else if (echo_flag) {
+                        echo_flag = false;
+                        cancel_alarm(alarm);
+                        datetime_t now;
+                        rtc_get_datetime(&now);
+            
+                        printf("[%04d-%02d-%02d %02d:%02d:%02d] Distância: %.2f cm\n", 
+                            now.year, now.month, now.day, now.hour, now.min, now.sec, 
+                            duration * 0.034 / 2);
+                    }
+            
+                    sleep_ms(1000);
+
+        }
 
     }
 }
