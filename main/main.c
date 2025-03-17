@@ -5,7 +5,6 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/rtc.h"
@@ -65,34 +64,17 @@ int main() {
     
     gpio_set_irq_enabled_with_callback(ECHO_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &echo_callback);
 
-    printf("Digite 'Start' para iniciar e 'Stop' para parar\n");
-
-    char buffer[10];
-    int i = 0;
+    printf("Digite 'a' para iniciar e 's' para parar\n");
 
     while (true) {
 
         int command = getchar_timeout_us(0);
 
-        if (command != PICO_ERROR_TIMEOUT) {
-            buffer[i++] = command;
-            if (command == '\n') {
-                buffer[i] = '\0';
-                i = 0;
-            }
-        }
-
-
-
-        if (strcmp(buffer,"Start") == 0) {
+        if (command == 'a') {
             run = true;
-            // limpa o buffer
-            for (int j = 0; j < 10; j++) {
-                buffer[j] = 0;
-            }
             printf("Iniciado\n");
         }
-        else if (strcmp(buffer,"Stop") == 0) {
+        else if (command == 's') {
             run = false;
             printf("Parado\n");
         }
