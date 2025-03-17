@@ -19,7 +19,7 @@ volatile bool echo_flag = false;
 
 volatile long duration;
 
-bool run = false;
+
 
 int64_t alarm_callback(alarm_id_t id, void *user_data) {
     alarm_flag = true;
@@ -67,6 +67,7 @@ int main() {
     printf("Digite 'a' para iniciar e 's' para parar\n");
 
     while (true) {
+        bool run;
 
         int command = getchar_timeout_us(0);
 
