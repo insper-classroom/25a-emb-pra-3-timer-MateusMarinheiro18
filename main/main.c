@@ -67,7 +67,7 @@ int main() {
     printf("Digite 'a' para iniciar e 's' para parar\n");
 
     while (true) {
-        bool run;
+        bool run = false;
 
         int command = getchar_timeout_us(0);
 
